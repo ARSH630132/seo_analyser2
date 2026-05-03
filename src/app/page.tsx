@@ -125,7 +125,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="mt-20 border-t border-slate-200 py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 text-center text-slate-400 text-sm">
-          <p>© 2024 SEO Auditor Tool. Built with Next.js, Tailwind, and Cheerio.</p>
+          <p>© 2026 SEO Analyser Tool. Built with Next.js, Tailwind, and Cheerio.</p>
         </div>
       </footer>
     </main>
