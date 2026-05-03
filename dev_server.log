@@ -1,0 +1,43 @@
+
+> temp-app@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+✓ Ready in 964ms
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+
+ POST /api/audit 200 in 2.8s (next.js: 2.5s, application-code: 214ms)
+Scraping error: TypeError: fetch failed
+    at async POST (src/app/api/audit/route.ts:18:22)
+  16 |
+  17 |     const startTime = Date.now();
+> 18 |     const response = await fetch(targetUrl, {
+     |                      ^
+  19 |       headers: {
+  20 |         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML...
+  21 |       }, {
+  [cause]: Error: getaddrinfo ENOTFOUND invalid-url-that-does-not-exist-123456.com
+      at ignore-listed frames {
+    errno: -3008,
+    code: 'ENOTFOUND',
+    syscall: 'getaddrinfo',
+    hostname: 'invalid-url-that-does-not-exist-123456.com'
+  }
+}
+ POST /api/audit 500 in 498ms (next.js: 6ms, application-code: 493ms)
+ POST /api/audit 400 in 13ms (next.js: 5ms, application-code: 8ms)
+○ Compiling / ...
+ GET / 200 in 4.9s (next.js: 4.5s, application-code: 373ms)
+ POST /api/audit 200 in 230ms (next.js: 9ms, application-code: 221ms)
+ GET / 200 in 88ms (next.js: 7ms, application-code: 81ms)
+ POST /api/audit 200 in 168ms (next.js: 3ms, application-code: 165ms)
+ GET / 200 in 63ms (next.js: 5ms, application-code: 58ms)
+ POST /api/audit 200 in 146ms (next.js: 5ms, application-code: 142ms)
+ GET / 200 in 60ms (next.js: 5ms, application-code: 55ms)
+ POST /api/audit 200 in 132ms (next.js: 4ms, application-code: 128ms)
