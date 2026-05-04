@@ -11,7 +11,9 @@ import {
   Zap, 
   List, 
   ChevronRight, 
-  Globe 
+  Globe,
+  AlertTriangle, // New Icon for highlighting
+  CheckCircle2    // New Icon for perfect score
 } from 'lucide-react';
 
 export default function Home() {
@@ -31,7 +33,6 @@ export default function Home() {
     setProgress({ current: 0, total: 0 });
 
     try {
-      // Step 1: Find all internal links via Crawler API
       const linksResponse = await fetch('/api/get-site-links', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -46,7 +47,6 @@ export default function Home() {
 
       const results: SEOReport[] = [];
 
-      // Step 2: Loop through each link and perform deep-dive audit
       for (let i = 0; i < links.length; i++) {
         const currentUrl = links[i];
         let success = false;
@@ -63,25 +63,23 @@ export default function Home() {
             const auditData = await auditResponse.json();
             if (!auditResponse.ok) throw new Error(auditData.error);
 
-            // Turn raw data into diagnostic report
             const analyzedReport = analyzeSEO(auditData);
             results.push(analyzedReport);
             
-            // Update UI state with new results as they arrive
             setSiteAuditResults([...results]);
             success = true;
           } catch (err) {
             retries++;
             if (retries > 2) {
-               success = true; // Move on if max retries reached
+               success = true; 
             } else {
-               await delay(1000); // Wait before retry
+               await delay(1000); 
             }
           }
         }
 
         setProgress(prev => ({ ...prev, current: i + 1 }));
-        if (i < links.length - 1) await delay(500); // Politeness delay
+        if (i < links.length - 1) await delay(500); 
       }
     } catch (err: any) {
       setError(err.message);
@@ -94,7 +92,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-slate-50 flex flex-col">
-      {/* Premium Sticky Header */}
+      {/* Header section remains same */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm backdrop-blur-md bg-white/90">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
@@ -161,7 +159,7 @@ export default function Home() {
         {/* Dynamic Multi-page Dashboard */}
         {siteAuditResults.length > 0 && (
           <div className="flex flex-col lg:flex-row gap-10 mt-10 animate-in">
-            {/* Results Sidebar */}
+            {/* Results Sidebar with Improved Highlighting */}
             <aside className="lg:w-80 shrink-0">
               <div className="bg-white p-5 rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-200/50 sticky top-28 max-h-[calc(100vh-10rem)] flex flex-col">
                 <div className="flex items-center justify-between px-3 mb-6">
@@ -172,35 +170,46 @@ export default function Home() {
                      {siteAuditResults.length}
                    </span>
                 </div>
-                <div className="overflow-y-auto space-y-3 flex-1 custom-scrollbar">
-                  {siteAuditResults.map((res, index) => (
-                    <button
-                      key={res.url}
-                      onClick={() => setSelectedIndex(index)}
-                      className={`w-full text-left p-4 rounded-2xl border transition-all duration-300 flex items-center justify-between group overflow-hidden relative ${
-                        selectedIndex === index 
-                        ? 'bg-blue-600 border-blue-500 text-white shadow-xl shadow-blue-600/20' 
-                        : 'bg-white border-transparent hover:bg-slate-50 text-slate-600 hover:border-slate-200'
-                      }`}
-                    >
-                      <div className="min-w-0 flex-1 relative z-10">
-                        <p className={`text-[10px] font-black truncate mb-1.5 tracking-wider ${selectedIndex === index ? 'text-blue-100' : 'text-slate-400'}`}>
-                          {new URL(res.url).pathname === '/' ? 'DOMAIN HOME' : new URL(res.url).pathname.split('/').pop()?.toUpperCase() || 'PAGE'}
-                        </p>
-                        <div className="flex items-center gap-3">
-                          <span className={`text-xs font-black px-2 py-1 rounded-lg tabular-nums ${
-                            selectedIndex === index 
-                            ? 'bg-white/20 text-white' 
-                            : res.analysis.score >= 80 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
-                          }`}>{res.analysis.score}</span>
-                          <span className={`text-[11px] font-bold truncate italic ${selectedIndex === index ? 'text-blue-50 opacity-80' : 'text-slate-400'}`}>
-                             {res.meta.title || 'Untitled Page'}
-                          </span>
+                <div className="overflow-y-auto space-y-3 flex-1 custom-scrollbar pr-2">
+                  {siteAuditResults.map((res, index) => {
+                    const isPerfect = res.analysis.score === 100;
+                    const isSelected = selectedIndex === index;
+
+                    return (
+                      <button
+                        key={res.url}
+                        onClick={() => setSelectedIndex(index)}
+                        className={`w-full text-left p-4 rounded-2xl border transition-all duration-300 flex items-center justify-between group overflow-hidden relative ${
+                          isSelected 
+                          ? 'bg-blue-600 border-blue-500 text-white shadow-xl shadow-blue-600/20' 
+                          : isPerfect 
+                            ? 'bg-white border-transparent hover:bg-slate-50 text-slate-600 hover:border-slate-200'
+                            : 'bg-amber-50/70 border-amber-100 hover:bg-amber-100/80 text-slate-700'
+                        }`}
+                      >
+                        <div className="min-w-0 flex-1 relative z-10">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <p className={`text-[10px] font-black truncate tracking-wider ${isSelected ? 'text-blue-100' : 'text-slate-400'}`}>
+                              {new URL(res.url).pathname === '/' ? 'DOMAIN HOME' : new URL(res.url).pathname.split('/').pop()?.toUpperCase() || 'PAGE'}
+                            </p>
+                            {!isPerfect && !isSelected && <AlertTriangle size={10} className="text-amber-500 shrink-0 animate-pulse" />}
+                          </div>
+                          
+                          <div className="flex items-center gap-3">
+                            <span className={`text-xs font-black px-2 py-1 rounded-lg tabular-nums ${
+                              isSelected 
+                              ? 'bg-white/20 text-white' 
+                              : res.analysis.score >= 80 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
+                            }`}>{res.analysis.score}</span>
+                            <span className={`text-[11px] font-bold truncate italic ${isSelected ? 'text-blue-50 opacity-80' : 'text-slate-400'}`}>
+                               {res.meta.title || 'Untitled Page'}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                      <ChevronRight size={16} className={`relative z-10 transition-transform ${selectedIndex === index ? 'translate-x-1' : 'opacity-0 group-hover:opacity-40'}`} />
-                    </button>
-                  ))}
+                        <ChevronRight size={16} className={`relative z-10 transition-transform ${isSelected ? 'translate-x-1' : 'opacity-0 group-hover:opacity-40'}`} />
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </aside>
@@ -211,8 +220,8 @@ export default function Home() {
             </div>
           </div>
         )}
-
-        {/* Feature Cards - Initial State */}
+        
+        {/* Feature Cards stay the same */}
         {!selectedReport && !loading && !error && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mt-24">
             <FeatureCard 

@@ -47,7 +47,7 @@ export default function AuditResults({ report }: AuditResultsProps) {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-          {/* Critical Issues with Detailed H1 Diagnostic */}
+          {/* Critical Issues */}
           <section className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
             <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
               <AlertCircle className="text-rose-500" size={20} />
@@ -61,7 +61,6 @@ export default function AuditResults({ report }: AuditResultsProps) {
                       <ChevronRight size={16} className="mt-0.5 shrink-0" />
                       {issue}
                     </div>
-                    {/* H1 Deep-Dive: Shows exactly which headers are causing the 'Multiple H1' issue */}
                     {issue.includes('H1') && headers.h1.length > 1 && (
                       <div className="ml-7 mt-1 space-y-1.5">
                         <p className="text-[10px] font-bold text-rose-400 uppercase tracking-wider">Extra H1 Tags Detected:</p>
@@ -97,7 +96,7 @@ export default function AuditResults({ report }: AuditResultsProps) {
           </section>
         </div>
 
-        {/* Sidebar Categories with 'Why the Score?' Reasoning */}
+        {/* Categories Sidebar - Highlighted when score < 100 */}
         <div className="space-y-6">
           <CategoryCard 
             title="Technical" 
@@ -120,41 +119,47 @@ export default function AuditResults({ report }: AuditResultsProps) {
         </div>
       </div>
 
-      {/* Detailed Data View */}
+      {/* Detailed Data View - Updated for Full Width Meta Card */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {/* Meta Data with Smart Validation and Character Counter */}
-        <DataCard title="Meta Data" icon={<Layout size={18} className="text-slate-400" />}>
-          <DataItem label="Title" value={meta.title} />
-          
-          <div className="space-y-1">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-tight flex items-center gap-2">
-              Description
-              {analysis.descriptionLengthStatus === 'perfect' ? (
-                <CheckCircle2 size={12} className="text-emerald-500" />
-              ) : analysis.descriptionLengthStatus === 'missing' ? (
-                <X size={12} className="text-rose-500" />
-              ) : (
-                <AlertTriangle size={12} className="text-amber-500" />
-              )}
-            </p>
-            <div className={`p-3 rounded-xl border text-sm ${
-              analysis.descriptionLengthStatus === 'perfect' ? 'bg-emerald-50 border-emerald-100 text-emerald-800' :
-              analysis.descriptionLengthStatus === 'missing' ? 'bg-rose-50 border-rose-100 text-rose-800' :
-              'bg-amber-50 border-amber-100 text-amber-800'
-            }`}>
-              {meta.description || <span className="italic opacity-60">Not found</span>}
-              {meta.description && (
-                <p className="text-[10px] mt-2 font-bold opacity-60 uppercase tracking-widest">
-                  Length: {meta.description.length} chars (Ideal: 120-160)
+        
+        {/* Meta Data Card: Now Full Width (col-span-full) */}
+        <div className="md:col-span-2 lg:col-span-full">
+          <DataCard title="Meta Data" icon={<Layout size={18} className="text-slate-400" />}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <DataItem label="Title" value={meta.title} />
+                <DataItem label="Canonical" value={meta.canonical} />
+              </div>
+              
+              <div className="space-y-1">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-tight flex items-center gap-2">
+                  Description
+                  {analysis.descriptionLengthStatus === 'perfect' ? (
+                    <CheckCircle2 size={12} className="text-emerald-500" />
+                  ) : analysis.descriptionLengthStatus === 'missing' ? (
+                    <X size={12} className="text-rose-500" />
+                  ) : (
+                    <AlertTriangle size={12} className="text-amber-500" />
+                  )}
                 </p>
-              )}
+                <div className={`p-4 rounded-xl border text-sm leading-relaxed ${
+                  analysis.descriptionLengthStatus === 'perfect' ? 'bg-emerald-50 border-emerald-100 text-emerald-800' :
+                  analysis.descriptionLengthStatus === 'missing' ? 'bg-rose-50 border-rose-100 text-rose-800' :
+                  'bg-amber-50 border-amber-100 text-amber-800'
+                }`}>
+                  {meta.description || <span className="italic opacity-60">Not found</span>}
+                  {meta.description && (
+                    <p className="text-[10px] mt-3 font-bold opacity-60 uppercase tracking-widest border-t border-black/5 pt-2">
+                      Length: {meta.description.length} chars (Ideal: 120-160)
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-          
-          <DataItem label="Canonical" value={meta.canonical} />
-        </DataCard>
+          </DataCard>
+        </div>
 
-        {/* Headers and Top Keywords */}
+        {/* Headers */}
         <DataCard title="Headers" icon={<Type size={18} className="text-slate-400" />}>
           <div className="grid grid-cols-3 gap-2">
             <HeaderCount label="H1" count={headers.h1.length} warning={headers.h1.length > 1} critical={headers.h1.length === 0} />
@@ -194,23 +199,22 @@ export default function AuditResults({ report }: AuditResultsProps) {
 
 // --- Helper UI Components ---
 
-function MetricBox({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="bg-slate-50 p-4 rounded-2xl">
-      <p className="text-xs font-semibold text-slate-400 uppercase">{label}</p>
-      <p className="text-lg font-bold text-slate-700">{value}</p>
-    </div>
-  );
-}
-
 function CategoryCard({ title, score, icon, issues }: { title: string; score: number; icon: React.ReactNode; issues: string[] }) {
   const [showIssues, setShowIssues] = useState(false);
+  // Highlight if score is less than 100
+  const isPerfect = score === 100;
+  
   return (
-    <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-100 space-y-4">
+    <div className={`p-5 rounded-3xl shadow-sm border transition-all duration-300 space-y-4 ${
+      isPerfect 
+        ? 'bg-white border-slate-100' 
+        : 'bg-amber-50/50 border-amber-200 ring-1 ring-amber-100'
+    }`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {icon}
           <span className="font-bold text-slate-700">{title}</span>
+          {!isPerfect && <AlertTriangle size={14} className="text-amber-500 animate-pulse" />}
         </div>
         <div className="flex flex-col items-end">
           <span className={`text-lg font-bold ${score >= 80 ? 'text-emerald-500' : score >= 50 ? 'text-amber-500' : 'text-rose-500'}`}>{score}%</span>
@@ -220,7 +224,7 @@ function CategoryCard({ title, score, icon, issues }: { title: string; score: nu
         </div>
       </div>
       {issues.length > 0 && (
-        <div className="pt-2 border-t border-slate-50">
+        <div className="pt-2 border-t border-slate-100">
           <button onClick={() => setShowIssues(!showIssues)} className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase hover:text-blue-500 transition-colors">
             <Info size={12} /> {showIssues ? 'Hide Reasoning' : 'Why the Score?'}
           </button>
@@ -228,7 +232,7 @@ function CategoryCard({ title, score, icon, issues }: { title: string; score: nu
             <ul className="mt-3 space-y-2 animate-in slide-in-from-top-2">
               {issues.map((issue, i) => (
                 <li key={i} className="text-xs text-slate-500 flex gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-200 mt-1 shrink-0" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-slate-300 mt-1 shrink-0" />
                   {issue}
                 </li>
               ))}
@@ -240,9 +244,19 @@ function CategoryCard({ title, score, icon, issues }: { title: string; score: nu
   );
 }
 
+// ... (Other helper components stay the same)
+function MetricBox({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="bg-slate-50 p-4 rounded-2xl">
+      <p className="text-xs font-semibold text-slate-400 uppercase">{label}</p>
+      <p className="text-lg font-bold text-slate-700">{value}</p>
+    </div>
+  );
+}
+
 function DataCard({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 space-y-4">
+    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 space-y-4 h-full">
       <h4 className="font-bold text-slate-800 flex items-center gap-2">{icon} {title}</h4>
       <div className="space-y-4">{children}</div>
     </div>
