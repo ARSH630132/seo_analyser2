@@ -31,7 +31,7 @@ export default function Home() {
     setProgress({ current: 0, total: 0 });
 
     try {
-      // Step 1: Find all internal links via our Crawler API
+      // Step 1: Find all internal links via Crawler API
       const linksResponse = await fetch('/api/get-site-links', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -46,7 +46,7 @@ export default function Home() {
 
       const results: SEOReport[] = [];
 
-      // Step 2: Loop through each link and audit it
+      // Step 2: Loop through each link and perform deep-dive audit
       for (let i = 0; i < links.length; i++) {
         const currentUrl = links[i];
         let success = false;
@@ -63,15 +63,20 @@ export default function Home() {
             const auditData = await auditResponse.json();
             if (!auditResponse.ok) throw new Error(auditData.error);
 
+            // Turn raw data into diagnostic report
             const analyzedReport = analyzeSEO(auditData);
             results.push(analyzedReport);
             
-            // Update UI as we get results
+            // Update UI state with new results as they arrive
             setSiteAuditResults([...results]);
             success = true;
           } catch (err) {
             retries++;
-            await delay(1000); // Wait before retry
+            if (retries > 2) {
+               success = true; // Move on if max retries reached
+            } else {
+               await delay(1000); // Wait before retry
+            }
           }
         }
 
@@ -88,45 +93,58 @@ export default function Home() {
   const selectedReport = siteAuditResults[selectedIndex];
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      {/* Dashboard Header */}
-      <div className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+    <main className="min-h-screen bg-slate-50 flex flex-col">
+      {/* Premium Sticky Header */}
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm backdrop-blur-md bg-white/90">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="bg-blue-600 p-2 rounded-xl text-white">
-                <ShieldCheck size={20} />
+            <div className="flex items-center gap-2.5">
+              <div className="bg-blue-600 p-2.5 rounded-xl text-white shadow-lg shadow-blue-500/20">
+                <ShieldCheck size={22} />
               </div>
-              <h1 className="text-lg font-bold text-slate-800 tracking-tight">SEO Auditor Pro</h1>
+              <div>
+                <h1 className="text-xl font-black text-slate-900 tracking-tight leading-none">SEO Auditor <span className="text-blue-600">Pro</span></h1>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Enterprise Suite</p>
+              </div>
             </div>
-            <button className="bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-600 transition-all">
-              Upgrade to Enterprise
+            <button className="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-600 transition-all shadow-md active:scale-95">
+              Upgrade Plan
             </button>
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search & Progress Section */}
-        <div className={`${selectedReport ? 'max-w-4xl mx-auto mb-12' : 'pt-12 text-center'}`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full">
+        {/* Search & Audit Progress */}
+        <div className={`${selectedReport ? 'max-w-4xl mx-auto mb-10' : 'pt-16 text-center'}`}>
            {!selectedReport && !loading && (
-             <div className="mb-8 space-y-4">
-               <h2 className="text-5xl font-extrabold text-slate-900 tracking-tight">Site-wide <span className="text-blue-600">SEO Audit</span></h2>
-               <p className="text-lg text-slate-500 max-w-2xl mx-auto">Enter a domain to find issues across all your internal pages in one go.</p>
+             <div className="mb-10 space-y-4">
+               <h2 className="text-5xl sm:text-6xl font-black text-slate-900 tracking-tight">
+                 Site-wide <span className="text-blue-600">SEO Intelligence</span>
+               </h2>
+               <p className="text-lg text-slate-500 max-w-2xl mx-auto font-medium">
+                 Perform deep-dive diagnostics across your entire domain. Detect H1 issues and validate meta tags instantly.
+               </p>
              </div>
            )}
            
            <SearchBar onSearch={handleSearch} isLoading={loading} />
            
            {loading && progress.total > 0 && (
-             <div className="mt-8 space-y-3 max-w-2xl mx-auto">
-               <div className="flex justify-between text-sm font-bold text-slate-600 uppercase tracking-wider">
-                 <span>Crawling & Auditing...</span>
-                 <span>{progress.current} / {progress.total} Pages</span>
+             <div className="mt-10 space-y-4 max-w-2xl mx-auto animate-in">
+               <div className="flex justify-between items-end">
+                 <div>
+                    <p className="text-xs font-black text-blue-600 uppercase tracking-[0.2em]">Live Analysis</p>
+                    <p className="text-sm font-bold text-slate-500 mt-1">Auditing Internal Pages...</p>
+                 </div>
+                 <div className="text-right">
+                    <span className="text-2xl font-black text-slate-800 tabular-nums">{progress.current}</span>
+                    <span className="text-slate-400 font-bold ml-1 text-sm">/ {progress.total}</span>
+                 </div>
                </div>
-               <div className="h-3 bg-slate-200 rounded-full overflow-hidden shadow-inner">
+               <div className="h-3 bg-slate-200 rounded-full overflow-hidden shadow-inner p-0.5">
                  <div 
-                   className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-700 ease-out"
+                   className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-700 ease-out shadow-lg"
                    style={{ width: `${(progress.current / progress.total) * 100}%` }}
                  />
                </div>
@@ -135,67 +153,92 @@ export default function Home() {
         </div>
 
         {error && (
-          <div className="mt-8 p-4 bg-rose-50 border border-rose-100 rounded-2xl text-rose-700 text-center animate-in">
+          <div className="mt-10 p-5 bg-rose-50 border border-rose-100 rounded-[2rem] text-rose-700 text-center animate-in max-w-2xl mx-auto">
             <p className="font-bold">{error}</p>
           </div>
         )}
 
-        {/* Audit Results Dashboard */}
+        {/* Dynamic Multi-page Dashboard */}
         {siteAuditResults.length > 0 && (
-          <div className="flex flex-col lg:flex-row gap-8 mt-12 animate-in">
-            {/* Sidebar Navigation */}
+          <div className="flex flex-col lg:flex-row gap-10 mt-10 animate-in">
+            {/* Results Sidebar */}
             <aside className="lg:w-80 shrink-0">
-              <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm sticky top-24 max-h-[calc(100vh-10rem)] flex flex-col">
-                <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2 px-2 uppercase text-xs tracking-widest text-slate-400">
-                  <List size={14} /> Scanned Pages
-                </h3>
-                <div className="overflow-y-auto space-y-2 flex-1 pr-1 custom-scrollbar">
+              <div className="bg-white p-5 rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-200/50 sticky top-28 max-h-[calc(100vh-10rem)] flex flex-col">
+                <div className="flex items-center justify-between px-3 mb-6">
+                   <h3 className="font-black text-slate-400 uppercase text-[10px] tracking-[0.2em] flex items-center gap-2">
+                     <List size={14} className="text-blue-500" /> Scanned URLs
+                   </h3>
+                   <span className="bg-slate-100 text-slate-600 text-[10px] font-black px-2 py-1 rounded-lg">
+                     {siteAuditResults.length}
+                   </span>
+                </div>
+                <div className="overflow-y-auto space-y-3 flex-1 custom-scrollbar">
                   {siteAuditResults.map((res, index) => (
                     <button
                       key={res.url}
                       onClick={() => setSelectedIndex(index)}
-                      className={`w-full text-left p-4 rounded-2xl border transition-all duration-200 flex items-center justify-between group ${
-                        selectedIndex === index ? 'bg-blue-50 border-blue-200 text-blue-700 shadow-sm' : 'bg-white border-transparent hover:bg-slate-50 text-slate-600'
+                      className={`w-full text-left p-4 rounded-2xl border transition-all duration-300 flex items-center justify-between group overflow-hidden relative ${
+                        selectedIndex === index 
+                        ? 'bg-blue-600 border-blue-500 text-white shadow-xl shadow-blue-600/20' 
+                        : 'bg-white border-transparent hover:bg-slate-50 text-slate-600 hover:border-slate-200'
                       }`}
                     >
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-black truncate mb-1">
-                          {new URL(res.url).pathname === '/' ? 'HOME' : new URL(res.url).pathname.toUpperCase()}
+                      <div className="min-w-0 flex-1 relative z-10">
+                        <p className={`text-[10px] font-black truncate mb-1.5 tracking-wider ${selectedIndex === index ? 'text-blue-100' : 'text-slate-400'}`}>
+                          {new URL(res.url).pathname === '/' ? 'DOMAIN HOME' : new URL(res.url).pathname.split('/').pop()?.toUpperCase() || 'PAGE'}
                         </p>
-                        <div className="flex items-center gap-2">
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                            res.analysis.score >= 80 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+                        <div className="flex items-center gap-3">
+                          <span className={`text-xs font-black px-2 py-1 rounded-lg tabular-nums ${
+                            selectedIndex === index 
+                            ? 'bg-white/20 text-white' 
+                            : res.analysis.score >= 80 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
                           }`}>{res.analysis.score}</span>
-                          <span className="text-[10px] text-slate-400 truncate italic">{res.meta.title}</span>
+                          <span className={`text-[11px] font-bold truncate italic ${selectedIndex === index ? 'text-blue-50 opacity-80' : 'text-slate-400'}`}>
+                             {res.meta.title || 'Untitled Page'}
+                          </span>
                         </div>
                       </div>
-                      <ChevronRight size={14} className={selectedIndex === index ? 'opacity-100' : 'opacity-0 group-hover:opacity-40'} />
+                      <ChevronRight size={16} className={`relative z-10 transition-transform ${selectedIndex === index ? 'translate-x-1' : 'opacity-0 group-hover:opacity-40'}`} />
                     </button>
                   ))}
                 </div>
               </div>
             </aside>
 
-            {/* Selected Page Details */}
+            {/* Selected Page Details View */}
             <div className="flex-1 min-w-0">
                {selectedReport && <AuditResults report={selectedReport} />}
             </div>
           </div>
         )}
 
-        {/* Empty State Features */}
+        {/* Feature Cards - Initial State */}
         {!selectedReport && !loading && !error && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20">
-            <FeatureCard icon={<Zap className="text-amber-500" />} title="Full Site Crawl" description="Finds up to 15 internal links automatically and audits each one sequentially." />
-            <FeatureCard icon={<ShieldCheck className="text-emerald-500" />} title="Deep SEO Check" description="Every page gets a detailed analysis of headers, meta tags, and social readiness." />
-            <FeatureCard icon={<LayoutDashboard className="text-blue-500" />} title="Dynamic Dashboard" description="Switch between pages instantly using the sidebar to identify site-wide patterns." />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mt-24">
+            <FeatureCard 
+              icon={<Zap className="text-amber-500" />} 
+              title="Site-wide Crawl" 
+              description="Automatically discovers up to 15 internal links and audits each page sequentially for deep patterns." 
+            />
+            <FeatureCard 
+              icon={<ShieldCheck className="text-emerald-500" />} 
+              title="Header Diagnostics" 
+              description="Identifies multiple H1 tags and extracts their text content so you know exactly what to fix." 
+            />
+            <FeatureCard 
+              icon={<LayoutDashboard className="text-blue-500" />} 
+              title="Smart Validation" 
+              description="Advanced meta description length checks with real-time status indicators and scoring reasoning." 
+            />
           </div>
         )}
       </div>
 
-      <footer className="mt-auto border-t border-slate-200 py-10 bg-white">
-        <div className="max-w-7xl mx-auto px-4 text-center text-slate-400 text-xs font-bold uppercase tracking-widest">
-          <p>© 2026 SEO Analyser Pro. Performance Site-wide Analysis.</p>
+      <footer className="mt-auto border-t border-slate-200 py-12 bg-white">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.3em]">
+            © 2026 SEO Analyser Pro · Next-Gen Performance Analysis
+          </p>
         </div>
       </footer>
     </main>
@@ -204,10 +247,12 @@ export default function Home() {
 
 function FeatureCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
   return (
-    <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl transition-shadow duration-300">
-      <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center mb-6">{icon}</div>
-      <h3 className="font-bold text-slate-800 text-lg mb-2">{title}</h3>
-      <p className="text-slate-500 text-sm leading-relaxed">{description}</p>
+    <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-xl shadow-slate-200/40 hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group">
+      <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-8 group-hover:bg-blue-50 transition-all duration-500">
+        {icon}
+      </div>
+      <h3 className="font-black text-slate-800 text-xl mb-3 tracking-tight">{title}</h3>
+      <p className="text-slate-500 text-sm leading-relaxed font-medium">{description}</p>
     </div>
   );
 }

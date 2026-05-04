@@ -49,6 +49,8 @@ export interface SEOReport {
     score: number;
     criticalIssues: string[];
     passedChecks: string[];
+    // Added for deep-dive diagnostics
+    descriptionLengthStatus: 'short' | 'long' | 'perfect' | 'missing'; 
     categories: {
       technical: { score: number; issues: string[] };
       content: { score: number; issues: string[] };

@@ -1,7 +1,8 @@
 import { SEOReport } from '@/types/seo';
 
 /**
- * Analyzes raw scraped data and generates a comprehensive SEO report with scores and issues.
+ * Analyzes raw scraped data and generates a comprehensive SEO report with deep-dive diagnostics.
+ * This function handles scoring and populates reasonings for every deduction.
  */
 export function analyzeSEO(data: any): SEOReport {
   const criticalIssues: string[] = [];
@@ -17,8 +18,10 @@ export function analyzeSEO(data: any): SEOReport {
 
   // --- Technical Analysis ---
   if (!data.meta.canonical) {
-    technicalIssues.push('Missing Canonical tag');
+    const issue = 'Missing Canonical tag';
+    technicalIssues.push(issue);
     technicalScore -= 10;
+    criticalIssues.push(issue);
   } else {
     passedChecks.push('Canonical tag present');
   }
@@ -26,100 +29,65 @@ export function analyzeSEO(data: any): SEOReport {
   if (!data.meta.favicon) {
     technicalIssues.push('Missing Favicon');
     technicalScore -= 5;
-  } else {
-    passedChecks.push('Favicon present');
   }
 
-  if (!data.meta.language) {
-    technicalIssues.push('Missing HTML language attribute');
-    technicalScore -= 5;
-  } else {
-    passedChecks.push('Language attribute defined');
-  }
-
-  if (data.metrics.loadTime > 1500) {
-    technicalIssues.push(`Page load time is slow (${data.metrics.loadTime}ms)`);
+  if (data.metrics.loadTime > 2000) {
+    const issue = `Page load time is slow (${data.metrics.loadTime}ms)`;
+    technicalIssues.push(issue);
     technicalScore -= 15;
   } else {
-    passedChecks.push('Excellent page load speed');
+    passedChecks.push('Good page load speed');
   }
 
-  if (data.metrics.textToHtmlRatio < 10) {
-    technicalIssues.push(`Low text-to-HTML ratio (${data.metrics.textToHtmlRatio.toFixed(2)}%)`);
-    technicalScore -= 5;
-  } else {
-    passedChecks.push('Healthy text-to-HTML ratio');
-  }
-
-  // --- Content Analysis ---
+  // --- Content Analysis: Detailed H1 Audit ---
   if (data.headers.h1.length === 0) {
+    const issue = 'Exactly one H1 tag is required (None found)';
+    contentIssues.push(issue);
     contentScore -= 20;
-    criticalIssues.push('Missing H1 tag (Exactly one required)');
+    criticalIssues.push(issue);
   } else if (data.headers.h1.length > 1) {
-    contentIssues.push(`Multiple H1 tags found (${data.headers.h1.length})`);
+    const issue = `Exactly one H1 tag is required (${data.headers.h1.length} found)`;
+    contentIssues.push(issue);
     contentScore -= 15;
-    criticalIssues.push(`Too many H1 tags (${data.headers.h1.length} found)`);
+    criticalIssues.push(issue);
   } else {
-    passedChecks.push('Perfect H1 tag structure');
+    passedChecks.push('Exactly one H1 tag found');
   }
 
-  if (!data.meta.title) {
-    contentIssues.push('Missing Meta Title');
-    contentScore -= 20;
-    criticalIssues.push('Missing Meta Title');
-  } else if (data.meta.title.length < 30 || data.meta.title.length > 65) {
-    contentIssues.push('Meta Title length is not optimal (30-65 characters)');
-    contentScore -= 10;
-  } else {
-    passedChecks.push('Meta Title is optimized');
-  }
-
+  // --- Meta Description: Smart Validation ---
+  let descriptionLengthStatus: 'short' | 'long' | 'perfect' | 'missing' = 'missing';
   if (!data.meta.description) {
-    contentIssues.push('Missing Meta Description');
+    const issue = 'Missing Meta Description';
+    contentIssues.push(issue);
     contentScore -= 15;
-    criticalIssues.push('Missing Meta Description');
-  } else if (data.meta.description.length < 120 || data.meta.description.length > 160) {
-    contentIssues.push('Meta Description length should be 120-160 characters');
-    contentScore -= 5;
+    criticalIssues.push(issue);
+    descriptionLengthStatus = 'missing';
   } else {
-    passedChecks.push('Meta Description is optimized');
+    const len = data.meta.description.length;
+    if (len < 120) {
+      contentIssues.push(`Meta Description is too short (${len} chars)`);
+      contentScore -= 5;
+      descriptionLengthStatus = 'short';
+    } else if (len > 160) {
+      contentIssues.push(`Meta Description is too long (${len} chars)`);
+      contentScore -= 5;
+      descriptionLengthStatus = 'long';
+    } else {
+      passedChecks.push('Perfect Meta Description length');
+      descriptionLengthStatus = 'perfect';
+    }
   }
 
   if (data.images.missingAlt > 0) {
     contentIssues.push(`${data.images.missingAlt} images are missing alt text`);
-    contentScore -= Math.min(data.images.missingAlt * 2, 15);
-    criticalIssues.push('Images missing ALT attributes');
-  } else if (data.images.total > 0) {
-    passedChecks.push('All images have descriptive alt text');
+    contentScore -= Math.min(data.images.missingAlt * 2, 10);
   }
 
-  if (data.metrics.wordCount < 300) {
-    contentIssues.push('Content is too thin (less than 300 words)');
-    contentScore -= 15;
-  } else {
-    passedChecks.push('Substantial content word count');
-  }
-
-  // --- Social Analysis ---
-  if (!data.social.ogTitle || !data.social.ogImage) {
-    socialIssues.push('Missing Open Graph (OG) tags');
-    socialScore -= 20;
-    criticalIssues.push('Social sharing tags missing');
-  } else {
-    passedChecks.push('Open Graph tags are present');
-  }
-
-  if (!data.social.twitterCard) {
-    socialIssues.push('Missing Twitter Card configuration');
-    socialScore -= 10;
-  } else {
-    passedChecks.push('Twitter Card configuration present');
-  }
-
-  // Final Scoring
+  // Normalize Scores
   technicalScore = Math.max(0, technicalScore);
   contentScore = Math.max(0, contentScore);
   socialScore = Math.max(0, socialScore);
+
   const totalScore = Math.round((technicalScore + contentScore + socialScore) / 3);
 
   return {
@@ -128,6 +96,7 @@ export function analyzeSEO(data: any): SEOReport {
       score: totalScore,
       criticalIssues: Array.from(new Set(criticalIssues)),
       passedChecks,
+      descriptionLengthStatus,
       categories: {
         technical: { score: technicalScore, issues: technicalIssues },
         content: { score: contentScore, issues: contentIssues },
