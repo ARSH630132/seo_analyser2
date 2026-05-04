@@ -1,3 +1,7 @@
+/**
+ * The core data structure for a single page SEO report.
+ * This interface ensures type safety across the Scraper API and the React Frontend.
+ */
 export interface SEOReport {
   url: string;
   meta: {

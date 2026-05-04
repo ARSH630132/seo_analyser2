@@ -9,11 +9,8 @@ import {
   ShieldCheck, 
   Layout, 
   Share2, 
-  Clock, 
-  Link2, 
   Image as ImageIcon,
   Type,
-  ExternalLink,
   ChevronRight,
   ChevronDown,
   ChevronUp,
@@ -21,9 +18,7 @@ import {
   X
 } from 'lucide-react';
 
-interface AuditResultsProps {
-  report: SEOReport;
-}
+interface AuditResultsProps { report: SEOReport; }
 
 export default function AuditResults({ report }: AuditResultsProps) {
   const { analysis, meta, metrics, images, links, headers, social } = report;
@@ -40,29 +35,17 @@ export default function AuditResults({ report }: AuditResultsProps) {
             <p className="text-slate-500 mt-1">{meta.title}</p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="bg-slate-50 p-4 rounded-2xl">
-              <p className="text-xs font-semibold text-slate-400 uppercase">Load Time</p>
-              <p className="text-lg font-bold text-slate-700">{metrics.loadTime}ms</p>
-            </div>
-            <div className="bg-slate-50 p-4 rounded-2xl">
-              <p className="text-xs font-semibold text-slate-400 uppercase">Words</p>
-              <p className="text-lg font-bold text-slate-700">{metrics.wordCount}</p>
-            </div>
-            <div className="bg-slate-50 p-4 rounded-2xl">
-              <p className="text-xs font-semibold text-slate-400 uppercase">Images</p>
-              <p className="text-lg font-bold text-slate-700">{images.total}</p>
-            </div>
-            <div className="bg-slate-50 p-4 rounded-2xl">
-              <p className="text-xs font-semibold text-slate-400 uppercase">Links</p>
-              <p className="text-lg font-bold text-slate-700">{links.total}</p>
-            </div>
+            <MetricBox label="Load Time" value={`${metrics.loadTime}ms`} />
+            <MetricBox label="Words" value={metrics.wordCount} />
+            <MetricBox label="Images" value={images.total} />
+            <MetricBox label="Links" value={links.total} />
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Critical Issues & Passed Checks */}
         <div className="lg:col-span-2 space-y-8">
+          {/* Critical Issues */}
           <section className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
             <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
               <AlertCircle className="text-rose-500" size={20} />
@@ -78,10 +61,11 @@ export default function AuditResults({ report }: AuditResultsProps) {
                 ))}
               </ul>
             ) : (
-              <p className="text-slate-500 text-sm bg-emerald-50 p-4 rounded-2xl">No critical issues found! Great job.</p>
+              <p className="text-slate-500 text-sm bg-emerald-50 p-4 rounded-2xl">No critical issues found!</p>
             )}
           </section>
 
+          {/* Passed Checks */}
           <section className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
             <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
               <CheckCircle2 className="text-emerald-500" size={20} />
@@ -98,127 +82,60 @@ export default function AuditResults({ report }: AuditResultsProps) {
           </section>
         </div>
 
-        {/* Categories Sidebar */}
+        {/* Category Scores */}
         <div className="space-y-6">
-          <CategoryCard 
-            title="Technical" 
-            score={analysis.categories.technical.score} 
-            icon={<ShieldCheck className="text-blue-500" size={20} />} 
-          />
-          <CategoryCard 
-            title="Content" 
-            score={analysis.categories.content.score} 
-            icon={<Layout className="text-purple-500" size={20} />} 
-          />
-          <CategoryCard 
-            title="Social" 
-            score={analysis.categories.social.score} 
-            icon={<Share2 className="text-pink-500" size={20} />} 
-          />
+          <CategoryCard title="Technical" score={analysis.categories.technical.score} icon={<ShieldCheck className="text-blue-500" />} />
+          <CategoryCard title="Content" score={analysis.categories.content.score} icon={<Layout className="text-purple-500" />} />
+          <CategoryCard title="Social" score={analysis.categories.social.score} icon={<Share2 className="text-pink-500" />} />
         </div>
       </div>
 
-      {/* Detailed Data */}
+      {/* Detailed Data View */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {/* Meta Data */}
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 space-y-4">
-          <h4 className="font-bold text-slate-800 flex items-center gap-2">
-            <Layout size={18} className="text-slate-400" /> Meta Data
-          </h4>
-          <div className="space-y-3">
-            <DataItem label="Title" value={meta.title} />
-            <DataItem label="Description" value={meta.description} />
-            <DataItem label="Canonical" value={meta.canonical} />
-            <DataItem label="Language" value={meta.language} />
-            <DataItem label="Favicon" value={meta.favicon} />
-          </div>
-        </div>
+        <DataCard title="Meta Data" icon={<Layout size={18} />}>
+          <DataItem label="Title" value={meta.title} />
+          <DataItem label="Description" value={meta.description} />
+          <DataItem label="Canonical" value={meta.canonical} />
+        </DataCard>
 
-        {/* Content Details */}
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 space-y-4">
-          <h4 className="font-bold text-slate-800 flex items-center gap-2">
-            <Type size={18} className="text-slate-400" /> Headers
-          </h4>
+        <DataCard title="Headers" icon={<Type size={18} />}>
           <div className="grid grid-cols-3 gap-2">
             <HeaderCount label="H1" count={headers.h1.length} />
             <HeaderCount label="H2" count={headers.h2.length} />
             <HeaderCount label="H3" count={headers.h3.length} />
-            <HeaderCount label="H4" count={headers.h4.length} />
-            <HeaderCount label="H5" count={headers.h5.length} />
-            <HeaderCount label="H6" count={headers.h6.length} />
           </div>
-          
-          <button 
-            onClick={() => setShowHeaders(!showHeaders)}
-            className="w-full py-2 px-4 text-xs font-semibold text-slate-500 bg-slate-50 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-between"
-          >
-            {showHeaders ? 'Hide Header Content' : 'Show Header Content'}
+          <button onClick={() => setShowHeaders(!showHeaders)} className="w-full mt-4 py-2 px-4 text-xs font-semibold bg-slate-50 rounded-xl flex items-center justify-between">
+            {showHeaders ? 'Hide Content' : 'Show Content'}
             {showHeaders ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </button>
+          {showHeaders && <div className="mt-4 text-sm text-slate-600 italic">{headers.h1[0]}</div>}
+        </DataCard>
 
-          {showHeaders && (
-            <div className="space-y-3 pt-2 max-h-60 overflow-y-auto">
-              {headers.h1.length > 0 && <DataItem label="H1 Content" value={headers.h1.join(' | ')} />}
-              {headers.h2.length > 0 && <DataItem label="H2 Content" value={headers.h2.slice(0, 3).join(' | ') + (headers.h2.length > 3 ? '...' : '')} />}
-              <DataItem label="Top Keywords" value={metrics.topKeywords.map(k => `${k.keyword} (${k.count})`).join(', ')} />
-            </div>
-          )}
-
-          {!showHeaders && (
-             <div className="mt-4">
-                <DataItem label="Top Keywords" value={metrics.topKeywords.map(k => `${k.keyword} (${k.count})`).join(', ')} />
-             </div>
-          )}
-        </div>
-
-        {/* Images & Links */}
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 space-y-4">
-          <h4 className="font-bold text-slate-800 flex items-center gap-2">
-             <ImageIcon size={18} className="text-slate-400" /> Media & Links
-          </h4>
-          <div className="space-y-3">
-            <DataRow label="Missing Alt Text" value={images.missingAlt} critical={images.missingAlt > 0} />
-            <DataRow label="Missing Title Tags" value={images.missingTitle} warning={images.missingTitle > 0} />
-            <DataRow label="Internal Links" value={links.internal} />
-            <DataRow label="External Links" value={links.external} />
-            <DataRow label="Nofollow Links" value={links.nofollow} />
-          </div>
-        </div>
+        <DataCard title="Media & Links" icon={<ImageIcon size={18} />}>
+          <DataRow label="Missing Alt Text" value={images.missingAlt} critical={images.missingAlt > 0} />
+          <DataRow label="Internal Links" value={links.internal} />
+          <DataRow label="External Links" value={links.external} />
+        </DataCard>
       </div>
 
       {/* Social SEO */}
       <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-        <h4 className="font-bold text-slate-800 flex items-center gap-2 mb-6">
-          <Share2 size={18} className="text-slate-400" /> Social SEO
-        </h4>
+        <h4 className="font-bold text-slate-800 flex items-center gap-2 mb-6"><Share2 size={18} /> Social SEO</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-4">
-            <h5 className="text-sm font-bold text-slate-400 flex items-center gap-2 uppercase tracking-wider">
-              <Globe size={14} /> Open Graph (Facebook)
-            </h5>
-            <div className="space-y-3">
-              <DataItem label="OG Title" value={social.ogTitle} />
-              <DataItem label="OG Description" value={social.ogDescription} />
-              {social.ogImage && (
-                <div className="space-y-1">
-                  <p className="text-xs font-bold text-slate-400 uppercase">OG Image</p>
-                  <p className="text-xs text-slate-500 break-all">{social.ogImage}</p>
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="space-y-4">
-            <h5 className="text-sm font-bold text-slate-400 flex items-center gap-2 uppercase tracking-wider">
-              <X size={14} /> Twitter Card
-            </h5>
-            <div className="space-y-3">
-              <DataItem label="Twitter Card Type" value={social.twitterCard} />
-              <DataItem label="Twitter Title" value={social.twitterTitle} />
-              <DataItem label="Twitter Description" value={social.twitterDescription} />
-            </div>
-          </div>
+          <SocialSection title="Open Graph" icon={<Globe size={14} />} items={[{ label: 'OG Title', value: social.ogTitle }]} />
+          <SocialSection title="Twitter Card" icon={<X size={14} />} items={[{ label: 'Card Type', value: social.twitterCard }]} />
         </div>
       </div>
+    </div>
+  );
+}
+
+// Helper Components
+function MetricBox({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="bg-slate-50 p-4 rounded-2xl">
+      <p className="text-xs font-semibold text-slate-400 uppercase">{label}</p>
+      <p className="text-lg font-bold text-slate-700">{value}</p>
     </div>
   );
 }
@@ -226,47 +143,53 @@ export default function AuditResults({ report }: AuditResultsProps) {
 function CategoryCard({ title, score, icon }: { title: string; score: number; icon: React.ReactNode }) {
   return (
     <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
-      <div className="flex items-center gap-3">
-        {icon}
-        <span className="font-bold text-slate-700">{title}</span>
-      </div>
-      <div className="flex flex-col items-end">
-        <span className={`text-lg font-bold ${score >= 80 ? 'text-emerald-500' : score >= 50 ? 'text-amber-500' : 'text-rose-500'}`}>{score}%</span>
-        <div className="w-24 h-1.5 bg-slate-100 rounded-full mt-1 overflow-hidden">
-          <div 
-            className={`h-full transition-all duration-1000 ${score >= 80 ? 'bg-emerald-500' : score >= 50 ? 'bg-amber-500' : 'bg-rose-500'}`} 
-            style={{ width: `${score}%` }} 
-          />
-        </div>
-      </div>
+      <div className="flex items-center gap-3">{icon} <span className="font-bold text-slate-700">{title}</span></div>
+      <span className="text-lg font-bold text-blue-600">{score}%</span>
+    </div>
+  );
+}
+
+function DataCard({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 space-y-4">
+      <h4 className="font-bold text-slate-800 flex items-center gap-2">{icon} {title}</h4>
+      <div className="space-y-3">{children}</div>
     </div>
   );
 }
 
 function DataItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="space-y-1">
-      <p className="text-xs font-bold text-slate-400 uppercase tracking-tight">{label}</p>
-      <p className="text-sm text-slate-600 line-clamp-2 break-all">{value || <span className="text-slate-300 italic">Not found</span>}</p>
+    <div>
+      <p className="text-xs font-bold text-slate-400 uppercase">{label}</p>
+      <p className="text-sm text-slate-600 truncate">{value || 'Not found'}</p>
     </div>
   );
 }
 
-function DataRow({ label, value, critical, warning }: { label: string; value: number | string; critical?: boolean; warning?: boolean }) {
-  const colorClass = critical ? 'text-rose-500' : warning ? 'text-amber-500' : 'text-slate-700';
+function DataRow({ label, value, critical }: { label: string; value: number; critical?: boolean }) {
   return (
-    <div className="flex justify-between items-center text-sm">
+    <div className="flex justify-between text-sm">
       <span className="text-slate-500">{label}</span>
-      <span className={`font-semibold ${colorClass}`}>{value}</span>
+      <span className={`font-bold ${critical ? 'text-rose-500' : 'text-slate-700'}`}>{value}</span>
     </div>
   );
 }
 
 function HeaderCount({ label, count }: { label: string; count: number }) {
   return (
-    <div className="bg-slate-50 p-2 rounded-xl flex flex-col items-center">
-      <span className="text-[10px] font-bold text-slate-400">{label}</span>
-      <span className="font-bold text-slate-700">{count}</span>
+    <div className="bg-slate-50 p-2 rounded-xl text-center">
+      <p className="text-[10px] font-bold text-slate-400">{label}</p>
+      <p className="font-bold text-slate-700">{count}</p>
+    </div>
+  );
+}
+
+function SocialSection({ title, icon, items }: { title: string; icon: React.ReactNode; items: { label: string; value: string }[] }) {
+  return (
+    <div className="space-y-4">
+      <h5 className="text-sm font-bold text-slate-400 flex items-center gap-2 uppercase tracking-wider">{icon} {title}</h5>
+      {items.map((item, i) => <DataItem key={i} label={item.label} value={item.value} />)}
     </div>
   );
 }

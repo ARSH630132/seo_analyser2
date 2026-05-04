@@ -11,7 +11,8 @@ interface ScoreCircleProps {
 export default function ScoreCircle({ score, size = 160, strokeWidth = 12 }: ScoreCircleProps) {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
-  const offset = circumference - (score / 100) * circumference;
+  // Calculate offset with a fallback to ensure the circle renders correctly
+  const offset = circumference - (Math.min(Math.max(score, 0), 100) / 100) * circumference;
 
   const getColor = (s: number) => {
     if (s >= 80) return 'text-emerald-500';
@@ -26,8 +27,9 @@ export default function ScoreCircle({ score, size = 160, strokeWidth = 12 }: Sco
   };
 
   return (
-    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+    <div className="relative flex items-center justify-center shrink-0" style={{ width: size, height: size }}>
       <svg className="transform -rotate-90" width={size} height={size}>
+        {/* Background Track */}
         <circle
           className={getBgColor(score)}
           strokeWidth={strokeWidth}
@@ -36,6 +38,7 @@ export default function ScoreCircle({ score, size = 160, strokeWidth = 12 }: Sco
           cx={size / 2}
           cy={size / 2}
         />
+        {/* Progress Path */}
         <circle
           className={`${getColor(score)} transition-all duration-1000 ease-out`}
           strokeWidth={strokeWidth}
@@ -50,8 +53,12 @@ export default function ScoreCircle({ score, size = 160, strokeWidth = 12 }: Sco
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className={`text-4xl font-bold ${getColor(score)}`}>{score}</span>
-        <span className="text-slate-400 text-xs font-semibold uppercase tracking-wider">SEO Score</span>
+        <span className={`text-4xl font-bold ${getColor(score)} tabular-nums`}>
+          {Math.round(score)}
+        </span>
+        <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-1">
+          SEO Score
+        </span>
       </div>
     </div>
   );
