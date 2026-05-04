@@ -195,7 +195,7 @@ export default function Home() {
 
       <footer className="mt-auto border-t border-slate-200 py-10 bg-white">
         <div className="max-w-7xl mx-auto px-4 text-center text-slate-400 text-xs font-bold uppercase tracking-widest">
-          <p>© 2024 SEO Auditor Pro. Performance Site-wide Analysis.</p>
+          <p>© 2026 SEO Analyser Pro. Performance Site-wide Analysis.</p>
         </div>
       </footer>
     </main>
